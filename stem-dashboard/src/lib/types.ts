@@ -28,9 +28,9 @@ export interface ColorCategory {
   created_at: string
 }
 
-export interface StemColorCategory {
+export interface VarietyColorCategory {
   id: number
-  stem_id: number
+  variety_id: number
   color_type: 'single' | 'bicolor'
   primary_color_category_id: number
   secondary_color_category_id: number | null
@@ -70,7 +70,7 @@ export interface ProductItem {
   id: number
   stem_id: number
   vendor_id: number
-  stem_color_category_id: number | null
+  variety_color_category_id: number | null
   stem_variety_id: number | null
   stem_length_id: number | null
   product_item_name: string
@@ -82,7 +82,7 @@ export interface ProductItem {
 export interface ProductItemWithRelations extends ProductItem {
   stems: Stem
   vendors: Vendor
-  stem_color_categories: (StemColorCategory & {
+  variety_color_categories: (VarietyColorCategory & {
     color_categories: ColorCategory
   }) | null
   stem_varieties: (StemVariety & {
@@ -95,7 +95,6 @@ export interface ProductItemWithRelations extends ProductItem {
 
 export interface StemWithCounts extends Stem {
   stem_varieties: { count: number }[]
-  stem_color_categories: { count: number }[]
   product_items: { count: number }[]
 }
 
@@ -108,8 +107,14 @@ export interface VarietyWithStems extends Variety {
   stem_varieties: (StemVariety & { stems: Stem })[]
 }
 
+export interface VarietyWithColors extends Variety {
+  variety_color_categories: (VarietyColorCategory & {
+    color_categories: ColorCategory
+  })[]
+}
+
 export interface ColorCategoryWithCount extends ColorCategory {
-  stem_color_categories: { count: number }[]
+  variety_color_categories: { count: number }[]
 }
 
 export interface LengthWithCount extends Length {

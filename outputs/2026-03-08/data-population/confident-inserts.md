@@ -1,9 +1,9 @@
 # Confident Inserts — All Sources
 
-**Total confident inserts:** 2628
+**Total confident inserts:** 2636
 
 
-## Elite Roses (85 items)
+## Elite Roses (93 items)
 
 | Stem | Variety | Color | Product Name |
 |---|---|---|---|
@@ -27,6 +27,10 @@
 | rose | tibet | white | White Tibet Rose |
 | rose | vendela | white | White Vendela Rose |
 | rose (garden) | white o'hara | white | White White O'Hara Rose |
+| rose | paloma | white/pink | Bicolor White - Pink Paloma Rose |
+| rose | magic times | white/pink | Bicolor White - Pink Magic Times Rose |
+| rose | sweetness | white/hot pink | Bicolor White - Hot Pink Sweetness Rose |
+| rose | lady amira | pink/hot pink | Bicolor Pink - Hot Pink Lady Amira Rose |
 | rose | sweet unique | pink | Medium Pink Sweet Unique Rose |
 | rose | christa | light pink | Light Pink Christa Rose |
 | rose | flirty | light pink | Light Pink Flirty Rose |
@@ -53,11 +57,7 @@
 | rose | queen berry | hot pink | Hot Pink Queen Berry Rose |
 | rose | v.i. pink | hot pink | Hot Pink V.I. Pink Rose |
 | rose | high orange magic | orange | Orange High Orange Magic Rose |
-| rose | hilux | orange | Orange Hilux Rose |
-| rose | lumia | orange | Orange Lumia Rose |
-| rose | nina | orange | Orange Nina Rose |
-| rose | orange crush | orange | Orange Orange Crush Rose |
-| ... | ... | ... | *(35 more)* |
+| ... | ... | ... | *(43 more)* |
 
 ## Elite Other (64 items)
 

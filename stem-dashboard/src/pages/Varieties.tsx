@@ -85,7 +85,14 @@ export function Varieties() {
                 <tr><td colSpan={3}><div className="empty-state"><p>🌹</p><p>No varieties found</p></div></td></tr>
               ) : filtered.slice(0, 200).map(v => (
                 <tr key={v.id}>
-                  <td style={{ fontWeight: 600 }}>{v.name}</td>
+                  <td style={{ fontWeight: 600 }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      {(v as any).variety_color_categories?.map((vcc: any) => (
+                        <span key={vcc.id} className="color-dot" style={{ background: vcc.color_categories?.hex_code || '#ccc' }} title={vcc.color_categories?.name} />
+                      ))}
+                      {v.name}
+                    </span>
+                  </td>
                   <td>
                     <div className="chip-list">
                       {v.stem_varieties?.map(sv => (

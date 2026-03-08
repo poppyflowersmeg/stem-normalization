@@ -269,13 +269,13 @@ export function ProductItems() {
                           {item.stems?.stem_subcategory && <span style={{ color: 'var(--muted)', marginLeft: 4 }}>({item.stems.stem_subcategory})</span>}
                         </td>
                         <td>
-                          {item.stem_color_categories?.color_categories && (
+                          {item.variety_color_categories?.color_categories && (
                             <span className="color-name-with-swatch">
                               <span
                                 className="color-swatch"
-                                style={{ background: item.stem_color_categories.color_categories.hex_code || '#ccc' }}
+                                style={{ background: item.variety_color_categories.color_categories.hex_code || '#ccc' }}
                               />
-                              {item.stem_color_categories.color_categories.name}
+                              {item.variety_color_categories.color_categories.name}
                             </span>
                           )}
                         </td>

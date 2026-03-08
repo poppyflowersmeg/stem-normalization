@@ -8,7 +8,7 @@ export function useColors() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('color_categories')
-        .select('*, stem_color_categories:stem_color_categories!primary_color_category_id(count)')
+        .select('*, variety_color_categories:variety_color_categories!primary_color_category_id(count)')
         .order('sort_order', { nullsFirst: false })
         .order('name')
       if (error) throw error

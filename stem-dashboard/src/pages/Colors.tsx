@@ -122,7 +122,7 @@ export function Colors() {
               />
               <div className="color-card-name">{color.name}</div>
               <div className="color-card-meta">
-                {color.stem_color_categories?.[0]?.count ?? 0} stems
+                {color.variety_color_categories?.[0]?.count ?? 0} varieties
                 {color.sort_order != null && ` · #${color.sort_order}`}
               </div>
               <button
@@ -145,9 +145,9 @@ export function Colors() {
           <div className="confirm-body">
             <p>Delete color</p>
             <p className="confirm-name">{deleteColor.name}</p>
-            {(deleteColor.stem_color_categories?.[0]?.count ?? 0) > 0 && (
+            {(deleteColor.variety_color_categories?.[0]?.count ?? 0) > 0 && (
               <p style={{ fontSize: '.82rem', color: 'var(--amber)', marginTop: 8 }}>
-                ⚠️ Used by {deleteColor.stem_color_categories[0].count} stems
+                ⚠️ Used by {deleteColor.variety_color_categories[0].count} varieties
               </p>
             )}
           </div>

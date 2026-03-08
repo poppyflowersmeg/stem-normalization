@@ -8,7 +8,7 @@ export function useStems() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('stems')
-        .select('*, stem_varieties(count), stem_color_categories(count), product_items(count)')
+        .select('*, stem_varieties(count), product_items(count)')
         .order('stem_category')
       if (error) throw error
       return data as StemWithCounts[]
@@ -25,8 +25,7 @@ export function useStemDetail(id: number | null) {
         .from('stems')
         .select(`
           *,
-          stem_varieties (*, varieties (*)),
-          stem_color_categories (*, color_categories:primary_color_category_id (*)),
+          stem_varieties (*, varieties (*, variety_color_categories (*, color_categories:primary_color_category_id (*)))),
           stem_lengths (*, lengths (*)),
           product_items (count)
         `)

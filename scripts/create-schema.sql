@@ -5,7 +5,7 @@
 DROP TABLE IF EXISTS product_items CASCADE;
 DROP TABLE IF EXISTS stem_lengths CASCADE;
 DROP TABLE IF EXISTS stem_varieties CASCADE;
-DROP TABLE IF EXISTS stem_color_categories CASCADE;
+DROP TABLE IF EXISTS variety_color_categories CASCADE;
 DROP TABLE IF EXISTS vendor_locations CASCADE;
 DROP TABLE IF EXISTS lengths CASCADE;
 DROP TABLE IF EXISTS varieties CASCADE;
@@ -61,11 +61,11 @@ CREATE TABLE color_categories (
 );
 
 -- ============================================================
--- 5. stem_color_categories
+-- 5. variety_color_categories
 -- ============================================================
-CREATE TABLE stem_color_categories (
+CREATE TABLE variety_color_categories (
   id                           SERIAL PRIMARY KEY,
-  stem_id                      INT NOT NULL REFERENCES stems(id) ON DELETE CASCADE,
+  variety_id                   INT NOT NULL REFERENCES varieties(id) ON DELETE CASCADE,
   color_type                   VARCHAR(20) NOT NULL CHECK (color_type IN ('single', 'bicolor')),
   primary_color_category_id    INT NOT NULL REFERENCES color_categories(id),
   secondary_color_category_id  INT REFERENCES color_categories(id),
@@ -78,6 +78,9 @@ CREATE TABLE stem_color_categories (
     (color_type = 'bicolor' AND secondary_color_category_id IS NOT NULL AND bicolor_type IS NOT NULL)
   )
 );
+
+CREATE UNIQUE INDEX idx_variety_color_unique
+  ON variety_color_categories (variety_id, color_type, primary_color_category_id, COALESCE(secondary_color_category_id, 0));
 
 -- ============================================================
 -- 6. varieties
@@ -127,7 +130,7 @@ CREATE TABLE product_items (
   id                      SERIAL PRIMARY KEY,
   stem_id                 INT NOT NULL REFERENCES stems(id) ON DELETE CASCADE,
   vendor_id               INT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
-  stem_color_category_id  INT REFERENCES stem_color_categories(id),
+  variety_color_category_id INT REFERENCES variety_color_categories(id),
   stem_variety_id         INT REFERENCES stem_varieties(id),
   stem_length_id          INT REFERENCES stem_lengths(id),
   product_item_name       VARCHAR(255) NOT NULL,
@@ -138,6 +141,6 @@ CREATE TABLE product_items (
 -- Indexes for common queries
 CREATE INDEX idx_product_items_stem ON product_items(stem_id);
 CREATE INDEX idx_product_items_vendor ON product_items(vendor_id);
-CREATE INDEX idx_stem_color_categories_stem ON stem_color_categories(stem_id);
+CREATE INDEX idx_variety_color_categories_variety ON variety_color_categories(variety_id);
 CREATE INDEX idx_stem_varieties_stem ON stem_varieties(stem_id);
 CREATE INDEX idx_stem_lengths_stem ON stem_lengths(stem_id);

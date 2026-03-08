@@ -10,7 +10,7 @@ export function useVarieties() {
       return fetchAll<VarietyWithStems>(() =>
         supabase
           .from('varieties')
-          .select('*, stem_varieties(*, stems(*))')
+          .select('*, stem_varieties(*, stems(*)), variety_color_categories(*, color_categories:primary_color_category_id(*))')
           .order('name')
       )
     }

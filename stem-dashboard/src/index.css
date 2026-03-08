@@ -781,6 +781,21 @@ textarea {
   color: var(--stem);
 }
 
+.variety-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.color-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+
 .chip-remove {
   margin-left: 4px;
   cursor: pointer;

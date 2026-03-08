@@ -117,7 +117,6 @@ export function Stems() {
                 <th>Category</th>
                 <th>Subcategory</th>
                 <th>Varieties</th>
-                <th>Colors</th>
                 <th>Products</th>
                 <th style={{ width: 80 }}>Actions</th>
               </tr>
@@ -125,10 +124,10 @@ export function Stems() {
             <tbody>
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, i) => (
-                  <tr key={i}>{Array.from({ length: 7 }).map((_, j) => <td key={j}><div className="skeleton" style={{ width: '70%' }} /></td>)}</tr>
+                  <tr key={i}>{Array.from({ length: 6 }).map((_, j) => <td key={j}><div className="skeleton" style={{ width: '70%' }} /></td>)}</tr>
                 ))
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={7}><div className="empty-state"><p>🌿</p><p>No stems found</p></div></td></tr>
+                <tr><td colSpan={6}><div className="empty-state"><p>🌿</p><p>No stems found</p></div></td></tr>
               ) : filtered.map(stem => (
                 <>
                   <tr key={stem.id} style={{ cursor: 'pointer' }} onClick={() => setExpandedId(expandedId === stem.id ? null : stem.id)}>
@@ -140,7 +139,6 @@ export function Stems() {
                       {stem.stem_subcategory || '—'}
                     </td>
                     <td>{stem.stem_varieties?.[0]?.count ?? 0}</td>
-                    <td>{stem.stem_color_categories?.[0]?.count ?? 0}</td>
                     <td>{stem.product_items?.[0]?.count ?? 0}</td>
                     <td>
                       <div className="actions-cell" onClick={e => e.stopPropagation()}>
@@ -151,30 +149,21 @@ export function Stems() {
                   </tr>
                   {expandedId === stem.id && detail && (
                     <tr key={`exp-${stem.id}`}>
-                      <td colSpan={7} style={{ padding: 0 }}>
+                      <td colSpan={6} style={{ padding: 0 }}>
                         <div className="expandable-content">
                           <div className="expand-section">
                             <div className="expand-section-title">Varieties ({detail.stem_varieties?.length || 0})</div>
                             <div className="chip-list">
                               {detail.stem_varieties?.length > 0
                                 ? detail.stem_varieties.map((sv: any) => (
-                                  <span key={sv.id} className="chip">{sv.varieties?.name}</span>
-                                ))
-                                : <span style={{ fontSize: '.82rem', color: 'var(--muted)' }}>No varieties linked</span>
-                              }
-                            </div>
-                          </div>
-                          <div className="expand-section">
-                            <div className="expand-section-title">Colors ({detail.stem_color_categories?.length || 0})</div>
-                            <div className="chip-list">
-                              {detail.stem_color_categories?.length > 0
-                                ? detail.stem_color_categories.map((scc: any) => (
-                                  <span key={scc.id} className="chip">
-                                    <span className="color-swatch" style={{ width: 10, height: 10, background: scc.color_categories?.hex_code || '#ccc', marginRight: 4 }} />
-                                    {scc.color_categories?.name}
+                                  <span key={sv.id} className="chip variety-chip">
+                                    {sv.varieties?.variety_color_categories?.map((vcc: any) => (
+                                      <span key={vcc.id} className="color-dot" style={{ background: vcc.color_categories?.hex_code || '#ccc' }} title={vcc.color_categories?.name} />
+                                    ))}
+                                    {sv.varieties?.name}
                                   </span>
                                 ))
-                                : <span style={{ fontSize: '.82rem', color: 'var(--muted)' }}>No colors linked</span>
+                                : <span style={{ fontSize: '.82rem', color: 'var(--muted)' }}>No varieties linked</span>
                               }
                             </div>
                           </div>

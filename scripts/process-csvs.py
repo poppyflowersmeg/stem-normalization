@@ -173,16 +173,28 @@ def ensure_stem_variety(category, subcategory, variety_name):
     )
 
 
-def ensure_stem_color(category, subcategory, color_category):
-    """Generate SQL to link a color to a stem."""
-    subcat_clause = f"stem_subcategory = {esc(subcategory)}" if subcategory else "stem_subcategory IS NULL"
-    sql_batch.append(
-        f"INSERT INTO stem_color_categories (stem_id, color_type, primary_color_category_id) "
-        f"SELECT s.id, 'single', cc.id FROM stems s, color_categories cc "
-        f"WHERE s.stem_category = {esc(category)} AND s.{subcat_clause} "
-        f"AND cc.name = {esc(color_category)} "
-        f"ON CONFLICT DO NOTHING;"
-    )
+def ensure_variety_color(variety_name, color_category, color_type='single',
+                         secondary_color=None, bicolor_type=None):
+    """Generate SQL to link a color to a variety."""
+    if not variety_name or not color_category:
+        return
+    if secondary_color:
+        sql_batch.append(
+            f"INSERT INTO variety_color_categories (variety_id, color_type, "
+            f"primary_color_category_id, secondary_color_category_id, bicolor_type) "
+            f"SELECT v.id, {esc(color_type)}, cc1.id, cc2.id, {esc(bicolor_type)} "
+            f"FROM varieties v, color_categories cc1, color_categories cc2 "
+            f"WHERE v.name = {esc(variety_name)} AND cc1.name = {esc(color_category)} "
+            f"AND cc2.name = {esc(secondary_color)} "
+            f"ON CONFLICT DO NOTHING;"
+        )
+    else:
+        sql_batch.append(
+            f"INSERT INTO variety_color_categories (variety_id, color_type, primary_color_category_id) "
+            f"SELECT v.id, 'single', cc.id FROM varieties v, color_categories cc "
+            f"WHERE v.name = {esc(variety_name)} AND cc.name = {esc(color_category)} "
+            f"ON CONFLICT DO NOTHING;"
+        )
 
 
 def ensure_product_item(category, subcategory, variety_name, color_category, vendor_name, product_item_name, vendor_sku=None):
@@ -198,12 +210,12 @@ def ensure_product_item(category, subcategory, variety_name, color_category, ven
     # Resolve vendor_id via subquery
     vendor_subq = f"(SELECT id FROM vendors WHERE name = {esc(vendor_name)} LIMIT 1)"
 
-    # Resolve stem_color_category_id via subquery (or NULL)
-    if color_category:
+    # Resolve variety_color_category_id via subquery (or NULL)
+    if color_category and variety_name:
         color_subq = (
-            f"(SELECT scc.id FROM stem_color_categories scc "
-            f"WHERE scc.stem_id = {stem_subq} "
-            f"AND scc.primary_color_category_id = "
+            f"(SELECT vcc.id FROM variety_color_categories vcc "
+            f"WHERE vcc.variety_id = (SELECT id FROM varieties WHERE name = {esc(variety_name)} LIMIT 1) "
+            f"AND vcc.primary_color_category_id = "
             f"(SELECT id FROM color_categories WHERE name = {esc(color_category)} LIMIT 1) "
             f"LIMIT 1)"
         )
@@ -225,7 +237,7 @@ def ensure_product_item(category, subcategory, variety_name, color_category, ven
     sku_val = esc(vendor_sku) if vendor_sku else "NULL"
 
     sql_batch.append(
-        f"INSERT INTO product_items (stem_id, vendor_id, stem_color_category_id, stem_variety_id, product_item_name, vendor_sku) "
+        f"INSERT INTO product_items (stem_id, vendor_id, variety_color_category_id, stem_variety_id, product_item_name, vendor_sku) "
         f"VALUES ({stem_subq}, {vendor_subq}, {color_subq}, {variety_subq}, {esc(product_item_name)}, {sku_val});"
     )
 
@@ -277,14 +289,36 @@ def process_elite_roses():
         # Map color
         color_mapped = map_color(current_color)
         if current_color and current_color.lower().startswith("bicolor"):
-            # Handle bicolor sections — flag for review
+            # Parse bicolor headers like "Bicolor White - Pink"
+            parts = current_color.replace("Bicolor ", "").replace("bicolor ", "").split(" - ")
+            if len(parts) == 2:
+                primary = map_color(parts[0].strip())
+                secondary = map_color(parts[1].strip())
+                if primary and secondary:
+                    variety_lower = variety_cell.lower().strip()
+                    ensure_stem(stem_cat, stem_subcat)
+                    ensure_variety(variety_lower)
+                    ensure_stem_variety(stem_cat, stem_subcat, variety_lower)
+                    ensure_variety_color(variety_lower, primary, 'bicolor', secondary, 'variegated')
+                    product_name = f"{current_color} {variety_cell} Rose".strip()
+                    ensure_product_item(stem_cat, stem_subcat, variety_lower, primary, "Elite", product_name)
+                    confident.append({
+                        "source": "Elite Roses",
+                        "stem": f"rose ({stem_subcat})" if stem_subcat else "rose",
+                        "variety": variety_lower,
+                        "color": f"{primary}/{secondary}",
+                        "product_name": product_name,
+                    })
+                    count += 1
+                    continue
+            # Fallback: flag for review if parsing failed
             review.append({
                 "source": "Elite Roses",
                 "raw_data": f"{current_color} | {variety_cell} | {category_cell}",
                 "parsed_category": "rose",
                 "parsed_variety": variety_cell.lower(),
                 "parsed_color": current_color,
-                "issue": f"Bicolor section '{current_color}' — needs manual color mapping",
+                "issue": f"Bicolor section '{current_color}' — could not parse colors",
             })
             continue
 
@@ -306,7 +340,7 @@ def process_elite_roses():
         ensure_variety(variety_lower)
         ensure_stem_variety(stem_cat, stem_subcat, variety_lower)
         if color_mapped:
-            ensure_stem_color(stem_cat, stem_subcat, color_mapped)
+            ensure_variety_color(variety_lower, color_mapped)
 
         # Check which lengths have pricing (cols E-H, indices 4-7)
         for cm_idx, cm_val in [(4, 40), (5, 50), (6, 60), (7, 70)]:
@@ -387,7 +421,7 @@ def process_elite_other():
         ensure_variety(variety_lower)
         ensure_stem_variety(stem_cat, stem_subcat, variety_lower)
         if color_mapped:
-            ensure_stem_color(stem_cat, stem_subcat, color_mapped)
+            ensure_variety_color(variety_lower, color_mapped)
 
         product_name = f"{cell_b}"
         ensure_product_item(stem_cat, stem_subcat, variety_lower, color_mapped, "Elite", product_name)
@@ -474,8 +508,8 @@ def process_dv():
         if variety_name:
             ensure_variety(variety_name)
             ensure_stem_variety(stem_cat, stem_subcat, variety_name)
-        if color_mapped:
-            ensure_stem_color(stem_cat, stem_subcat, color_mapped)
+        if color_mapped and variety_name:
+            ensure_variety_color(variety_name, color_mapped)
 
         confidence = "HIGH" if variety_name else "MEDIUM"
 
@@ -630,7 +664,7 @@ def process_agrogana():
         ensure_variety(variety_lower)
         ensure_stem_variety(stem_cat, stem_subcat, variety_lower)
         if color_mapped:
-            ensure_stem_color(stem_cat, stem_subcat, color_mapped)
+            ensure_variety_color(variety_lower, color_mapped)
 
         product_name = variety_raw
         ensure_product_item(stem_cat, stem_subcat, variety_lower, color_mapped, "Agrogana", product_name)
@@ -707,7 +741,7 @@ def process_magic_stems():
         ensure_variety(variety_lower)
         ensure_stem_variety(stem_cat, stem_subcat, variety_lower)
         if color_mapped:
-            ensure_stem_color(stem_cat, stem_subcat, color_mapped)
+            ensure_variety_color(variety_lower, color_mapped)
 
         ensure_product_item(stem_cat, stem_subcat, variety_lower, color_mapped, "Magic", product)
 
@@ -832,7 +866,7 @@ def process_mayesh():
         ensure_variety(variety_lower)
         ensure_stem_variety(stem_cat, stem_subcat, variety_lower)
         if color_mapped:
-            ensure_stem_color(stem_cat, stem_subcat, color_mapped)
+            ensure_variety_color(variety_lower, color_mapped)
 
         ensure_product_item(stem_cat, stem_subcat, variety_lower, color_mapped, "Mayesh", variety_raw)
 
@@ -993,7 +1027,7 @@ def process_magic_pricing():
         ensure_variety(variety_lower)
         ensure_stem_variety(stem_cat, stem_subcat, variety_lower)
         if color_mapped:
-            ensure_stem_color(stem_cat, stem_subcat, color_mapped)
+            ensure_variety_color(variety_lower, color_mapped)
 
         ensure_product_item(stem_cat, stem_subcat, variety_lower, color_mapped, "Magic", product_name)
 
@@ -1055,7 +1089,7 @@ def main():
              "SELECT 'stems' AS tbl, COUNT(*) FROM stems "
              "UNION ALL SELECT 'varieties', COUNT(*) FROM varieties "
              "UNION ALL SELECT 'stem_varieties', COUNT(*) FROM stem_varieties "
-             "UNION ALL SELECT 'stem_color_categories', COUNT(*) FROM stem_color_categories "
+             "UNION ALL SELECT 'variety_color_categories', COUNT(*) FROM variety_color_categories "
              "UNION ALL SELECT 'product_items', COUNT(*) FROM product_items "
              "ORDER BY tbl;"],
             capture_output=True, text=True

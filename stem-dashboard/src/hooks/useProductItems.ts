@@ -14,7 +14,7 @@ export function useProductItems() {
             *,
             stems (*),
             vendors (*),
-            stem_color_categories (*, color_categories:primary_color_category_id (*)),
+            variety_color_categories (*, color_categories:primary_color_category_id (*)),
             stem_varieties (*, varieties (*)),
             stem_lengths (*, lengths (*))
           `)
@@ -30,7 +30,7 @@ export function useCreateProductItem() {
     mutationFn: async (item: {
       stem_id: number
       vendor_id: number
-      stem_color_category_id?: number | null
+      variety_color_category_id?: number | null
       stem_variety_id?: number | null
       stem_length_id?: number | null
       product_item_name: string
@@ -54,7 +54,7 @@ export function useUpdateProductItem() {
     mutationFn: async ({ id, ...updates }: { id: number } & Partial<{
       stem_id: number
       vendor_id: number
-      stem_color_category_id: number | null
+      variety_color_category_id: number | null
       stem_variety_id: number | null
       stem_length_id: number | null
       product_item_name: string
