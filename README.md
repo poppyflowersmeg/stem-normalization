@@ -29,6 +29,34 @@ Run /stem-normalization-process with these spreadsheets:
 - https://docs.google.com/spreadsheets/d/def456/edit
 ```
 
+## Local Database Development
+
+This project uses **Supabase CLI** for local database management.
+
+### Starting the Local Stack
+To start the local database and apply migrations:
+```bash
+supabase start
+```
+
+### Creating a Database Dump
+To backup the local database schema and data:
+```bash
+# Export schema and data separately
+supabase db dump --local -f backups/supabase_schema_$(date +%Y%m%d).sql
+supabase db dump --local --data-only -f backups/supabase_data_$(date +%Y%m%d).sql
+```
+
+### Restoring from a Backup
+To restore a dump to your local instance:
+```bash
+# Restore schema
+psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f backups/supabase_schema_YYYYMMDD.sql
+
+# Restore data
+psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f backups/supabase_data_YYYYMMDD.sql
+```
+
 ## What Happens
 
 The workflow runs a 5-phase hierarchical analysis:

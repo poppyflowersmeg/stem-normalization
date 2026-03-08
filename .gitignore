@@ -1,0 +1,13 @@
+# Local Database Backups
+backups/
+
+# Node.js
+node_modules/
+.env
+.env.local
+.env.*.local
+
+# Supabase
+supabase/.temp/
+supabase/.branches/
+supabase/.remote/
