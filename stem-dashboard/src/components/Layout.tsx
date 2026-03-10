@@ -2,11 +2,8 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useState } from 'react'
 
 const navItems = [
-  { to: '/', icon: '🌸', label: 'Product Items' },
-  { to: '/stems', icon: '🌿', label: 'Stems' },
+  { to: '/', icon: '🌿', label: 'Catalog' },
   { to: '/colors', icon: '🎨', label: 'Colors' },
-  { to: '/varieties', icon: '🌹', label: 'Varieties' },
-  { to: '/lengths', icon: '📏', label: 'Lengths' },
   { to: '/vendors', icon: '🏢', label: 'Vendors' },
 ]
 

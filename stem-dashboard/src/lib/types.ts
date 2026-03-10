@@ -15,8 +15,10 @@ export interface VendorLocation {
 
 export interface Stem {
   id: number
-  stem_category: string
-  stem_subcategory: string | null
+  category: string
+  subcategory: string | null
+  variety: string | null
+  name: string
   created_at: string
 }
 
@@ -28,9 +30,9 @@ export interface ColorCategory {
   created_at: string
 }
 
-export interface VarietyColorCategory {
+export interface StemColor {
   id: number
-  variety_id: number
+  stem_id: number
   color_type: 'single' | 'bicolor'
   primary_color_category_id: number
   secondary_color_category_id: number | null
@@ -39,84 +41,52 @@ export interface VarietyColorCategory {
   created_at: string
 }
 
-export interface Variety {
-  id: number
-  name: string
-  created_at: string
-}
-
-export interface StemVariety {
+export interface VendorOffering {
   id: number
   stem_id: number
-  variety_id: number
-  legacy_stem_id: number | null
-  created_at: string
-}
-
-export interface Length {
-  id: number
-  cm: number
-  created_at: string
-}
-
-export interface StemLength {
-  id: number
-  stem_id: number
-  length_id: number
-  created_at: string
-}
-
-export interface ProductItem {
-  id: number
-  stem_id: number
+  stem_color_id: number | null
   vendor_id: number
-  variety_color_category_id: number | null
-  stem_variety_id: number | null
-  stem_length_id: number | null
-  product_item_name: string
+  length_cm: number | null
+  vendor_item_name: string | null
   vendor_sku: string | null
+  is_active: boolean
   created_at: string
 }
 
-// Joined types for display
-export interface ProductItemWithRelations extends ProductItem {
-  stems: Stem
-  vendors: Vendor
-  variety_color_categories: (VarietyColorCategory & {
-    color_categories: ColorCategory
-  }) | null
-  stem_varieties: (StemVariety & {
-    varieties: Variety
-  }) | null
-  stem_lengths: (StemLength & {
-    lengths: Length
-  }) | null
+export interface StemColorWithCategory extends StemColor {
+  color_categories: ColorCategory
+  secondary_color: ColorCategory | null
 }
 
-export interface StemWithCounts extends Stem {
-  stem_varieties: { count: number }[]
-  product_items: { count: number }[]
+// Stem list view — embedded colors + vendor offering pills
+export interface StemWithRelations extends Stem {
+  stem_colors: StemColorWithCategory[]
+  vendor_offerings: Array<{
+    id: number
+    vendor_id: number
+    stem_color_id: number | null
+    length_cm: number | null
+    vendor_item_name: string | null
+    is_active: boolean
+    vendors: Pick<Vendor, 'id' | 'name' | 'vendor_type'>
+    stem_colors: StemColorWithCategory | null
+  }>
+}
+
+// Stem detail view — full vendor offerings for expanded row
+export interface StemDetail extends Stem {
+  stem_colors: StemColorWithCategory[]
+  vendor_offerings: Array<VendorOffering & {
+    vendors: Vendor
+    stem_colors: StemColorWithCategory | null
+  }>
 }
 
 export interface VendorWithRelations extends Vendor {
   vendor_locations: VendorLocation[]
-  product_items: { count: number }[]
-}
-
-export interface VarietyWithStems extends Variety {
-  stem_varieties: (StemVariety & { stems: Stem })[]
-}
-
-export interface VarietyWithColors extends Variety {
-  variety_color_categories: (VarietyColorCategory & {
-    color_categories: ColorCategory
-  })[]
+  vendor_offerings: { count: number }[]
 }
 
 export interface ColorCategoryWithCount extends ColorCategory {
-  variety_color_categories: { count: number }[]
-}
-
-export interface LengthWithCount extends Length {
-  stem_lengths: { count: number }[]
+  stem_colors: { count: number }[]
 }

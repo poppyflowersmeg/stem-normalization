@@ -2,11 +2,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ToastProvider } from './components/Toast'
 import { Layout } from './components/Layout'
-import { ProductItems } from './pages/ProductItems'
-import { Stems } from './pages/Stems'
+import { Catalog } from './pages/Catalog'
 import { Colors } from './pages/Colors'
-import { Varieties } from './pages/Varieties'
-import { Lengths } from './pages/Lengths'
 import { Vendors } from './pages/Vendors'
 
 const queryClient = new QueryClient({
@@ -25,11 +22,8 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route element={<Layout />}>
-              <Route path="/" element={<ProductItems />} />
-              <Route path="/stems" element={<Stems />} />
+              <Route path="/" element={<Catalog />} />
               <Route path="/colors" element={<Colors />} />
-              <Route path="/varieties" element={<Varieties />} />
-              <Route path="/lengths" element={<Lengths />} />
               <Route path="/vendors" element={<Vendors />} />
             </Route>
           </Routes>

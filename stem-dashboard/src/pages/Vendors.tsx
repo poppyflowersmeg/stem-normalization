@@ -129,7 +129,7 @@ export function Vendors() {
       </div>
       <div className="form-row">
         <label>Notes</label>
-        <textarea value={formNotes} onChange={e => setFormNotes(e.target.value)} placeholder="Optional notes…" />
+        <textarea value={formNotes} onChange={e => setFormNotes(e.target.value)} placeholder="Optional notes..." />
       </div>
 
       {editVendor && (
@@ -139,13 +139,13 @@ export function Vendors() {
             {editVendor.vendor_locations?.map(loc => (
               <span key={loc.id} className="chip">
                 {loc.location_name}
-                <span className="chip-remove" onClick={() => removeLocation(loc.id)}>×</span>
+                <span className="chip-remove" onClick={() => removeLocation(loc.id)}>x</span>
               </span>
             ))}
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             <input type="text" value={newLocation} onChange={e => setNewLocation(e.target.value)}
-              placeholder="Add location…" style={{ flex: 1 }}
+              placeholder="Add location..." style={{ flex: 1 }}
               onKeyDown={e => e.key === 'Enter' && addLocation(editVendor.id)}
             />
             <button className="btn btn-secondary btn-sm" onClick={() => addLocation(editVendor.id)}>Add</button>
@@ -190,7 +190,7 @@ export function Vendors() {
                       {v.vendor_locations?.map(loc => <span key={loc.id} className="chip">{loc.location_name}</span>)}
                     </div>
                   </td>
-                  <td>{v.product_items?.[0]?.count ?? 0}</td>
+                  <td>{v.vendor_offerings?.[0]?.count ?? 0}</td>
                   <td style={{ color: 'var(--muted)', fontStyle: 'italic', fontSize: '.82rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {v.notes || '—'}
                   </td>
@@ -215,9 +215,9 @@ export function Vendors() {
           <div className="confirm-body">
             <p>Delete vendor</p>
             <p className="confirm-name">{deleteVendor.name}</p>
-            {(deleteVendor.product_items?.[0]?.count ?? 0) > 0 && (
+            {(deleteVendor.vendor_offerings?.[0]?.count ?? 0) > 0 && (
               <p style={{ fontSize: '.82rem', color: 'var(--amber)', marginTop: 8 }}>
-                ⚠️ Has {deleteVendor.product_items[0].count} product items
+                Has {deleteVendor.vendor_offerings[0].count} products
               </p>
             )}
           </div>

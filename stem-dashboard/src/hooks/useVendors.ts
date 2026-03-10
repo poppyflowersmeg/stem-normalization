@@ -8,7 +8,7 @@ export function useVendors() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('vendors')
-        .select('*, vendor_locations(*), product_items(count)')
+        .select('*, vendor_locations(*), vendor_offerings(count)')
         .order('name')
       if (error) throw error
       return data as VendorWithRelations[]
