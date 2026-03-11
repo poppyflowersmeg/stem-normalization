@@ -268,7 +268,7 @@ export function useUpdateVendorOffering() {
       vendor_id?: number
       stem_color_id?: number | null
       length_cm?: number | null
-      vendor_item_name?: string
+      vendor_item_name?: string | null
       vendor_sku?: string | null
       is_active?: boolean
     }) => {
@@ -291,7 +291,7 @@ export function useUpdateVendorOffering() {
 export function useDeleteVendorOffering() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, stem_id }: { id: number; stem_id: number }) => {
+    mutationFn: async ({ id }: { id: number; stem_id: number }) => {
       const { error } = await supabase.from('vendor_offerings').delete().eq('id', id)
       if (error) throw error
     },

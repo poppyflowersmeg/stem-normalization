@@ -222,13 +222,13 @@ export function VendorOfferings() {
   const [vendorFilter, setVendorFilter] = useState('')
   const [page, setPage] = useState(0)
 
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
   const handleSearchChange = useCallback((value: string) => {
     setSearchInput(value)
-    clearTimeout(debounceRef.current)
+    clearTimeout(debounceRef.current ?? undefined)
     debounceRef.current = setTimeout(() => { setDebouncedSearch(value); setPage(0) }, 300)
   }, [])
-  useEffect(() => () => clearTimeout(debounceRef.current), [])
+  useEffect(() => () => clearTimeout(debounceRef.current ?? undefined), [])
 
   const { data, isLoading, isFetching } = useVendorOfferingsList({
     search: debouncedSearch || undefined,

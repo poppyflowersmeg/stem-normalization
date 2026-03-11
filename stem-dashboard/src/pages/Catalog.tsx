@@ -284,16 +284,16 @@ export function Catalog() {
   const [page, setPage] = useState(0)
 
   // Debounce search input
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
   const handleSearchChange = useCallback((value: string) => {
     setSearchInput(value)
-    clearTimeout(debounceRef.current)
+    clearTimeout(debounceRef.current ?? undefined)
     debounceRef.current = setTimeout(() => {
       setDebouncedSearch(value)
       setPage(0)
     }, 300)
   }, [])
-  useEffect(() => () => clearTimeout(debounceRef.current), [])
+  useEffect(() => () => clearTimeout(debounceRef.current ?? undefined), [])
 
   // Reset page when filters change
   const handleCategoryChange = (v: string) => { setCategoryFilter(v); setPage(0) }
