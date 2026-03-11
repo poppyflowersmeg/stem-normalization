@@ -79,6 +79,13 @@ export interface StemDetail extends Stem {
   }>
 }
 
+// Vendor offering list view — full joins for standalone offerings page
+export interface VendorOfferingWithRelations extends VendorOffering {
+  stems: Stem
+  vendors: Vendor
+  stem_colors: StemColorWithCategory | null
+}
+
 export interface VendorWithRelations extends Vendor {
   vendor_locations: VendorLocation[]
   vendor_offerings: { count: number }[]

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import type { StemWithRelations, StemDetail, StemColorWithCategory } from '../lib/types'
+import type { Stem, StemWithRelations, StemDetail, StemColorWithCategory, VendorOfferingWithRelations } from '../lib/types'
 
 const STEM_SELECT = `
   *,
@@ -92,6 +92,63 @@ export function useAllStemColors() {
       if (error) throw error
       return data as StemColorWithCategory[]
     },
+  })
+}
+
+export function useStemList() {
+  return useQuery({
+    queryKey: ['stem-list'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('stems')
+        .select('id, name, category, subcategory, variety')
+        .order('name')
+      if (error) throw error
+      return data as Pick<Stem, 'id' | 'name' | 'category' | 'subcategory' | 'variety'>[]
+    },
+  })
+}
+
+export interface VendorOfferingFilters {
+  search?: string
+  vendorId?: number
+  page?: number
+  pageSize?: number
+}
+
+export function useVendorOfferingsList(filters: VendorOfferingFilters = {}) {
+  const { search, vendorId, page = 0, pageSize = 50 } = filters
+  return useQuery({
+    queryKey: ['vendor-offerings', { search, vendorId, page, pageSize }],
+    queryFn: async () => {
+      let countQuery = supabase.from('vendor_offerings').select('id', { count: 'exact', head: true })
+      let dataQuery = supabase.from('vendor_offerings').select(`
+        *, stems!inner (*), vendors (*),
+        stem_colors (*, color_categories:primary_color_category_id (*), secondary_color:secondary_color_category_id (*))
+      `)
+
+      if (search) {
+        const pattern = `%${search}%`
+        // Search across offering name, sku, and stem name
+        countQuery = countQuery.or(`vendor_item_name.ilike.${pattern},vendor_sku.ilike.${pattern},stems.name.ilike.${pattern}`)
+        dataQuery = dataQuery.or(`vendor_item_name.ilike.${pattern},vendor_sku.ilike.${pattern},stems.name.ilike.${pattern}`)
+      }
+      if (vendorId) {
+        countQuery = countQuery.eq('vendor_id', vendorId)
+        dataQuery = dataQuery.eq('vendor_id', vendorId)
+      }
+
+      const from = page * pageSize
+      dataQuery = dataQuery
+        .order('created_at', { ascending: false })
+        .range(from, from + pageSize - 1)
+
+      const [{ count }, { data, error }] = await Promise.all([countQuery, dataQuery])
+      if (error) throw error
+
+      return { offerings: (data as VendorOfferingWithRelations[]) || [], total: count ?? 0 }
+    },
+    placeholderData: (prev) => prev,
   })
 }
 

@@ -5,6 +5,7 @@ import { Layout } from './components/Layout'
 import { Catalog } from './pages/Catalog'
 import { Colors } from './pages/Colors'
 import { Vendors } from './pages/Vendors'
+import { VendorOfferings } from './pages/VendorOfferings'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,6 +26,7 @@ function App() {
               <Route path="/" element={<Catalog />} />
               <Route path="/colors" element={<Colors />} />
               <Route path="/vendors" element={<Vendors />} />
+              <Route path="/offerings" element={<VendorOfferings />} />
             </Route>
           </Routes>
         </BrowserRouter>
