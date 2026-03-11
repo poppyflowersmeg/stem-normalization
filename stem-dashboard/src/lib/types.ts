@@ -32,7 +32,6 @@ export interface ColorCategory {
 
 export interface StemColor {
   id: number
-  stem_id: number
   color_type: 'single' | 'bicolor'
   primary_color_category_id: number
   secondary_color_category_id: number | null
@@ -58,9 +57,8 @@ export interface StemColorWithCategory extends StemColor {
   secondary_color: ColorCategory | null
 }
 
-// Stem list view — embedded colors + vendor offering pills
+// Stem list view — embedded vendor offering pills
 export interface StemWithRelations extends Stem {
-  stem_colors: StemColorWithCategory[]
   vendor_offerings: Array<{
     id: number
     vendor_id: number
@@ -75,7 +73,6 @@ export interface StemWithRelations extends Stem {
 
 // Stem detail view — full vendor offerings for expanded row
 export interface StemDetail extends Stem {
-  stem_colors: StemColorWithCategory[]
   vendor_offerings: Array<VendorOffering & {
     vendors: Vendor
     stem_colors: StemColorWithCategory | null

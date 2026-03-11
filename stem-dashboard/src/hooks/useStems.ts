@@ -1,10 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import type { StemWithRelations, StemDetail } from '../lib/types'
+import type { StemWithRelations, StemDetail, StemColorWithCategory } from '../lib/types'
 
 const STEM_SELECT = `
   *,
-  stem_colors (*, color_categories:primary_color_category_id (*), secondary_color:secondary_color_category_id (*)),
   vendor_offerings (id, vendor_id, stem_color_id, length_cm, vendor_item_name, is_active, vendors (id, name, vendor_type), stem_colors (*, color_categories:primary_color_category_id (*), secondary_color:secondary_color_category_id (*)))
 `
 
@@ -41,11 +40,6 @@ export function useStems(filters: StemFilters = {}) {
         countQuery = countQuery.filter('vendor_offerings.vendor_id', 'eq', vendorId)
         dataQuery = dataQuery.filter('vendor_offerings.vendor_id', 'eq', vendorId)
       }
-      if (colorId) {
-        countQuery = countQuery.filter('stem_colors.primary_color_category_id', 'eq', colorId)
-        dataQuery = dataQuery.filter('stem_colors.primary_color_category_id', 'eq', colorId)
-      }
-
       const from = page * pageSize
       dataQuery = dataQuery
         .order('category')
@@ -55,15 +49,16 @@ export function useStems(filters: StemFilters = {}) {
       const [{ count }, { data, error }] = await Promise.all([countQuery, dataQuery])
       if (error) throw error
 
-      // Vendor/color filters use inner-join filtering on the DB, but PostgREST still
-      // returns stems whose nested arrays may be empty if the filter is on a nested table.
-      // Filter those out client-side.
       let results = (data as StemWithRelations[]) || []
+      // PostgREST nested filters may still return parent rows — filter client-side
       if (vendorId) {
         results = results.filter(s => s.vendor_offerings.some(vo => vo.vendor_id === vendorId))
       }
+      // Color filter: check via offering's stem_color
       if (colorId) {
-        results = results.filter(s => s.stem_colors.some(sc => sc.primary_color_category_id === colorId))
+        results = results.filter(s => s.vendor_offerings.some(vo =>
+          vo.stem_colors?.primary_color_category_id === colorId
+        ))
       }
 
       return { stems: results, total: count ?? 0 }
@@ -85,6 +80,21 @@ export function useStemCategories() {
   })
 }
 
+export function useAllStemColors() {
+  return useQuery({
+    queryKey: ['stem-colors'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('stem_colors')
+        .select('*, color_categories:primary_color_category_id (*), secondary_color:secondary_color_category_id (*)')
+        .order('color_type')
+        .order('primary_color_category_id')
+      if (error) throw error
+      return data as StemColorWithCategory[]
+    },
+  })
+}
+
 export function useStemDetail(id: number | null) {
   return useQuery({
     queryKey: ['stems', id, 'detail'],
@@ -94,7 +104,6 @@ export function useStemDetail(id: number | null) {
         .from('stems')
         .select(`
           *,
-          stem_colors (*, color_categories:primary_color_category_id (*), secondary_color:secondary_color_category_id (*)),
           vendor_offerings (*, vendors (*), stem_colors (*, color_categories:primary_color_category_id (*), secondary_color:secondary_color_category_id (*)))
         `)
         .eq('id', id!)
@@ -144,7 +153,6 @@ export function useCreateStemColor() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (sc: {
-      stem_id: number
       color_type: 'single' | 'bicolor'
       primary_color_category_id: number
       secondary_color_category_id?: number | null
@@ -161,9 +169,8 @@ export function useCreateStemColor() {
       if (error) throw error
       return data
     },
-    onSuccess: (_data, variables) => {
-      qc.invalidateQueries({ queryKey: ['stems', variables.stem_id, 'detail'] })
-      qc.invalidateQueries({ queryKey: ['stems'] })
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['stem-colors'] })
     }
   })
 }

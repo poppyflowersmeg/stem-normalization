@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import {
-  useStems, useStemCategories, useCreateStem, useUpdateStem, useDeleteStem,
+  useStems, useStemCategories, useAllStemColors, useCreateStem, useUpdateStem, useDeleteStem,
   useStemDetail, useCreateVendorOffering, useUpdateVendorOffering, useDeleteVendorOffering,
   useCreateStemColor,
 } from '../hooks/useStems'
@@ -180,11 +180,12 @@ function OfferingColorPicker({ value, onChange, stemColors, colorCategories }: {
 
 /* ── simple color category picker (reused in bicolor form) ── */
 
-function ColorCategoryPicker({ value, onChange, colors, placeholder }: {
+function ColorCategoryPicker({ value, onChange, colors, placeholder, style }: {
   value: string
   onChange: (v: string) => void
   colors: ColorCategory[]
   placeholder: string
+  style?: React.CSSProperties
 }) {
   const [open, setOpen] = useState(false)
   const [filter, setFilter] = useState('')
@@ -206,7 +207,7 @@ function ColorCategoryPicker({ value, onChange, colors, placeholder }: {
   const filtered = q ? colors.filter(c => c.name.toLowerCase().includes(q)) : colors
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <div ref={ref} style={{ position: 'relative', ...style }}>
       <div style={dropdownStyles.trigger} onClick={() => setOpen(!open)}>
         {selected ? (
           <>{colorDot(selected.hex_code, 14)} <span>{selected.name}</span></>
@@ -264,6 +265,7 @@ export function Catalog() {
   const { data: vendors } = useVendors()
   const { data: colors } = useColors()
   const { data: categories } = useStemCategories()
+  const { data: allStemColors } = useAllStemColors()
   const createStem = useCreateStem()
   const updateStem = useUpdateStem()
   const deleteStemMut = useDeleteStem()
@@ -424,14 +426,13 @@ export function Catalog() {
       } else if (offerColor.startsWith('cc:')) {
         // Find-or-create a single stem_color for this color category
         const ccId = Number(offerColor.slice(3))
-        const existing = detail?.stem_colors?.find(
+        const existing = allStemColors?.find(
           sc => sc.primary_color_category_id === ccId && sc.color_type === 'single'
         )
         if (existing) {
           stemColorId = existing.id
         } else {
           const created = await createStemColor.mutateAsync({
-            stem_id: expandedId,
             color_type: 'single',
             primary_color_category_id: ccId,
           })
@@ -472,11 +473,10 @@ export function Catalog() {
   }
 
   async function handleAddStemColor() {
-    if (!expandedId || !newColorPrimary) return
+    if (!newColorPrimary) return
     const isBicolor = !!newColorSecondary
     try {
       const created = await createStemColor.mutateAsync({
-        stem_id: expandedId,
         color_type: isBicolor ? 'bicolor' : 'single',
         primary_color_category_id: Number(newColorPrimary),
         secondary_color_category_id: isBicolor ? Number(newColorSecondary) : null,
@@ -516,7 +516,7 @@ export function Catalog() {
           <option value="">All Vendors</option>
           {vendors?.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
         </select>
-        <ColorCategoryPicker value={colorFilter} onChange={handleColorChange} colors={colors || []} placeholder="All Colors" />
+        <ColorCategoryPicker value={colorFilter} onChange={handleColorChange} colors={colors || []} placeholder="All Colors" style={{ flex: 1 }} />
       </div>
 
       {/* ── main table ── */}
@@ -768,7 +768,7 @@ export function Catalog() {
               <OfferingColorPicker
                 value={offerColor}
                 onChange={setOfferColor}
-                stemColors={detail?.stem_colors || []}
+                stemColors={allStemColors || []}
                 colorCategories={colors || []}
               />
               <button
